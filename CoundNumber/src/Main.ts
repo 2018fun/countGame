@@ -90,6 +90,8 @@ class Main extends egret.DisplayObjectContainer {
     private startButton: egret.Bitmap;
     private myTurn: boolean;
 
+    private background: egret.Bitmap;
+
     /**
      * 创建游戏场景
      * Create a game scene
@@ -158,8 +160,7 @@ class Main extends egret.DisplayObjectContainer {
         console.log(eventInfo);
         if (Number(!isNaN(Number(eventInfo.cpProto)))) {
             let clickNumber = Number(eventInfo.cpProto);
-            this.sum += clickNumber;
-            (this.amountList[clickNumber - 1] as egret.TextField).text = String(Number((this.amountList[clickNumber - 1] as egret.TextField).text) - 1);
+            this.sum = clickNumber;
             this.updateView();
             if (this.gameResult === "") {
                 this.myTurn = true;
@@ -173,25 +174,24 @@ class Main extends egret.DisplayObjectContainer {
 
     private onMatch(e) {
         this.startButton.visible = false;
-        let number_bitmap, number_amout;
+        let number_grid: egret.Shape, number_amout;
         this.engine.joinRandomRoom(2, "hello matchvs");
         this.response.sendEventNotify = this.sendEventNotify.bind(this);
-        for (var i = 1; i <= 6; i++) {
-            number_bitmap = new egret.Bitmap();
-            number_bitmap.texture = RES.getRes("" + i + "_png");
-            number_bitmap.x = ((i - 1) % 3) * 200;
-            number_bitmap.y = (Math.floor((i - 1) / 3)) * 400;
-            number_bitmap.name = i.toString();
-            number_bitmap.touchEnabled = true;
-            number_bitmap.addEventListener(egret.TouchEvent.TOUCH_TAP, this.getNumber, this);
-            this.addChild(number_bitmap);
-            number_amout = new egret.TextField;
-
-            number_amout.x = number_bitmap.x + number_bitmap.width;
-            number_amout.y = number_bitmap.y;
-            number_amout.text = "4";
-            this.amountList.push(number_amout);
-            this.addChild(number_amout);
+        for (var i = 1; i <= 81; i++) {
+            number_grid = new egret.Shape();
+            number_grid.graphics.beginFill(0x555555, 1);
+            number_grid.graphics.drawRect((i - 1) % 9 * 50, Math.floor((i - 1) / 9) * 50, 48, 48);
+            number_grid.graphics.endFill();
+            number_grid.touchEnabled = true;
+            number_grid.name = i.toString();
+            number_grid.addEventListener(egret.TouchEvent.TOUCH_TAP, this.getNumber, this);
+            this.addChild(number_grid);
+            // number_amout = new egret.TextField;
+            // number_amout.x = number_bitmap.x + number_bitmap.width;
+            // number_amout.y = number_bitmap.y;
+            // number_amout.text = "4";
+            // this.amountList.push(number_amout);
+            // this.addChild(number_amout);
         }
         this.sum = 0;
 
@@ -206,40 +206,36 @@ class Main extends egret.DisplayObjectContainer {
 
     private updateView() {
         this.sumText.text = this.sum.toString();
-        if (this.sum > 31) {
-            if (this.myTurn === true) {
-                this.myTurn = false;
-                this.gameResult = "loss";
-                console.log("loss");
-            } else {
-                this.gameResult = "win";
-                console.log("win");
-            }
-        } else if (this.sum === 31) {
-            if (this.myTurn === true) {
-                this.myTurn = false;
-                this.gameResult = "win";
-                console.log("win");
-            } else {
-                this.gameResult = "loss";
-                console.log("loss");
-            }
-        }
+        // if (this.sum > 31) {
+        //     if (this.myTurn === true) {
+        //         this.myTurn = false;
+        //         this.gameResult = "loss";
+        //         console.log("loss");
+        //     } else {
+        //         this.gameResult = "win";
+        //         console.log("win");
+        //     }
+        // } else if (this.sum === 31) {
+        //     if (this.myTurn === true) {
+        //         this.myTurn = false;
+        //         this.gameResult = "win";
+        //         console.log("win");
+        //     } else {
+        //         this.gameResult = "loss";
+        //         console.log("loss");
+        //     }
+        // }
     }
 
     private getNumber(e: egret.TouchEvent) {
         if (this.myTurn) {
             console.log(e.target.name);
             let clickNumber = Number(e.target.name);
-            if (Number((this.amountList[clickNumber - 1] as egret.TextField).text) === 0) {
-                console.log("请从点一次");
-            } else {
-                this.sum += clickNumber;
-                (this.amountList[clickNumber - 1] as egret.TextField).text = String(Number((this.amountList[clickNumber - 1] as egret.TextField).text) - 1)
-                this.engine.sendEvent(e.target.name);
-                this.updateView();
-                this.myTurn = false;
-            }
+
+            this.sum = clickNumber;
+            this.engine.sendEvent(e.target.name);
+            this.updateView();
+            this.myTurn = false;
 
         } else {
             console.log("不是你的回合");
